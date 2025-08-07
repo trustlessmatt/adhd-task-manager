@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useBuckets,
@@ -12,6 +13,7 @@ import {
   useDeleteTask,
   useUpdateTask,
   useDeleteBucket,
+  useUpdateBucket,
 } from "@/lib/hooks/use-queries";
 import {
   bucketSchema,
@@ -19,16 +21,21 @@ import {
   type BucketFormData,
   type TaskFormData,
 } from "@/lib/schemas";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { priorityColors, priorityIcons } from "@/lib/config";
 import { DeleteButtonDialog } from "./delete-button-dialog";
+import { DeleteTaskDialog } from "./delete-task-dialog";
+import { EditBucketDialog } from "./edit-bucket-dialog";
 import { Bucket } from "./bucket";
-import type { Task } from "@/lib/db/schema";
+import type { Task, Bucket as BucketType } from "@/lib/db/schema";
+import { AddNewBucket } from "./add-new-bucket";
 
-export function TaskManagerExample() {
+export function TaskManagerView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showAddBucket, setShowAddBucket] = useState(false);
   const [deletingBucketId, setDeletingBucketId] = useState<number | null>(null);
+  const [editingBucket, setEditingBucket] = useState<BucketType | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
   // Query hooks
   const { data: buckets = [], isLoading: bucketsLoading } = useBuckets();
@@ -41,6 +48,7 @@ export function TaskManagerExample() {
   const deleteTaskMutation = useDeleteTask();
   const updateTaskMutation = useUpdateTask();
   const deleteBucketMutation = useDeleteBucket();
+  const updateBucketMutation = useUpdateBucket();
 
   // Task form
   const taskForm = useForm<TaskFormData>({
@@ -89,9 +97,15 @@ export function TaskManagerExample() {
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
+  const handleDeleteTask = (task: Task) => {
+    setDeletingTask(task);
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!deletingTask) return;
     try {
-      await deleteTaskMutation.mutateAsync(taskId);
+      await deleteTaskMutation.mutateAsync(deletingTask.id);
+      setDeletingTask(null);
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
@@ -118,24 +132,54 @@ export function TaskManagerExample() {
     }
   };
 
+  const handleEditBucket = (bucket: BucketType) => {
+    setEditingBucket(bucket);
+  };
+
+  const handleUpdateBucket = async (data: BucketFormData) => {
+    if (!editingBucket) return;
+    try {
+      await updateBucketMutation.mutateAsync({
+        id: editingBucket.id,
+        updates: data,
+      });
+      setEditingBucket(null);
+    } catch (error) {
+      console.error("Failed to update bucket:", error);
+    }
+  };
+
   const getTasksByBucket = (bucketId: number) => {
     return tasks.filter((task) => task.bucketId === bucketId);
   };
 
   if (bucketsLoading || tasksLoading) {
-    return <div className="p-4 text-gray-100">Loading...</div>;
+    return (
+      <div className="p-4 text-gray-100 flex justify-center items-center h-screen">
+        <Loader2 className="w-10 h-10 animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-900 p-4">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-100 mb-8 text-center">
-          Task Manager
-        </h1>
+      <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
+        <div className="flex items-center gap-1 mt-8 mb-2">
+          <Image
+            src="/images/icon.png"
+            alt="ADHD Task Manager"
+            width={56}
+            height={56}
+          />
+          <h1 className="text-3xl font-bold text-gray-100 text-center font-heading">
+            ADHD Task Manager
+          </h1>
+        </div>
+        <p className="text-gray-100 mb-8 text-center">Unf*ck your brain.</p>
 
         {/* Quick Add Task Section */}
-        <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-gray-100">
+        <div className="w-full max-w-5xl bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border border-gray-700">
+          <h2 className="text-xl font-semibold mb-4 text-gray-100 font-heading">
             Quick Add Task
           </h2>
           <form
@@ -220,7 +264,7 @@ export function TaskManagerExample() {
         </div>
 
         {/* Buckets Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {buckets
             .filter((bucket) => bucket.name.toLowerCase() === "inbox")
             .map((bucket) => {
@@ -236,7 +280,6 @@ export function TaskManagerExample() {
                   bucketTasks={bucketTasks}
                   completedTasks={completedTasks}
                   setDeletingBucketId={setDeletingBucketId}
-                  handleDeleteBucket={handleDeleteBucket}
                   handleToggleTask={handleToggleTask}
                   handleDeleteTask={handleDeleteTask}
                   handleUpdateTask={handleUpdateTask}
@@ -244,6 +287,7 @@ export function TaskManagerExample() {
                   editingTask={editingTask}
                   priorityColors={priorityColors}
                   priorityIcons={priorityIcons}
+                  onEditBucket={handleEditBucket}
                 />
               );
             })}
@@ -264,7 +308,6 @@ export function TaskManagerExample() {
                   bucketTasks={bucketTasks}
                   completedTasks={completedTasks}
                   setDeletingBucketId={setDeletingBucketId}
-                  handleDeleteBucket={handleDeleteBucket}
                   handleToggleTask={handleToggleTask}
                   handleDeleteTask={handleDeleteTask}
                   handleUpdateTask={handleUpdateTask}
@@ -272,68 +315,20 @@ export function TaskManagerExample() {
                   editingTask={editingTask}
                   priorityColors={priorityColors}
                   priorityIcons={priorityIcons}
+                  onEditBucket={handleEditBucket}
                 />
               );
             })}
 
           {/* Add New Bucket */}
-          <div className="bg-gray-800 rounded-lg shadow-lg border-2 border-dashed border-gray-600 hover:border-gray-500 transition-colors">
+          <div className="min-h-[250px] bg-gray-800 rounded-lg shadow-lg border-2 border-dashed border-gray-600 hover:border-gray-500 transition-colors">
             {showAddBucket ? (
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-100">
-                  Add New Bucket
-                </h3>
-                <form
-                  onSubmit={bucketForm.handleSubmit(onSubmitBucket)}
-                  className="space-y-4"
-                >
-                  <div>
-                    <input
-                      {...bucketForm.register("name")}
-                      type="text"
-                      placeholder="Bucket name"
-                      className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100 placeholder-gray-400"
-                    />
-                    {bucketForm.formState.errors.name && (
-                      <p className="text-red-400 text-sm mt-1">
-                        {bucketForm.formState.errors.name.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <input
-                      {...bucketForm.register("color")}
-                      type="color"
-                      className="w-full h-12 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {bucketForm.formState.errors.color && (
-                      <p className="text-red-400 text-sm mt-1">
-                        {bucketForm.formState.errors.color.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      disabled={createBucketMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-                    >
-                      {createBucketMutation.isPending
-                        ? "Adding..."
-                        : "Add Bucket"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddBucket(false)}
-                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
+              <AddNewBucket
+                setShowAddBucket={setShowAddBucket}
+                bucketForm={bucketForm}
+                onSubmitBucket={onSubmitBucket}
+                createBucketMutation={createBucketMutation}
+              />
             ) : (
               <button
                 onClick={() => setShowAddBucket(true)}
@@ -353,6 +348,26 @@ export function TaskManagerExample() {
             deletingBucketId={deletingBucketId}
             setDeletingBucketId={setDeletingBucketId}
             handleDeleteBucket={handleDeleteBucket}
+          />
+        )}
+
+        {/* Edit Bucket Dialog */}
+        {editingBucket && (
+          <EditBucketDialog
+            bucket={editingBucket}
+            onClose={() => setEditingBucket(null)}
+            onSave={handleUpdateBucket}
+            isLoading={updateBucketMutation.isPending}
+          />
+        )}
+
+        {/* Delete Task Dialog */}
+        {deletingTask && (
+          <DeleteTaskDialog
+            task={deletingTask}
+            onClose={() => setDeletingTask(null)}
+            onConfirm={confirmDeleteTask}
+            isLoading={deleteTaskMutation.isPending}
           />
         )}
       </div>

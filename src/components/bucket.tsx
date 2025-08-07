@@ -1,6 +1,17 @@
+"use client";
+
 import { Bucket as BucketType, Task } from "@/lib/db/schema";
 import { TaskFormData } from "@/lib/schemas";
 import { Trash2, Check, Circle, Edit } from "lucide-react";
+import { getTextColor } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
+import { useEffect } from "react";
+import { useBuckets } from "@/lib/hooks/use-queries";
 
 export function Bucket({
   bucket,
@@ -14,20 +25,39 @@ export function Bucket({
   editingTask,
   priorityColors,
   priorityIcons,
+  onEditBucket,
 }: {
   bucket: BucketType;
   bucketTasks: Task[];
   completedTasks: number;
   setDeletingBucketId: (id: number) => void;
-  handleDeleteBucket: (id: number) => void;
   handleToggleTask: (id: number) => void;
-  handleDeleteTask: (id: number) => void;
+  handleDeleteTask: (task: Task) => void;
   handleUpdateTask: (id: number, task: Partial<TaskFormData>) => void;
   setEditingTask: (task: Task | null) => void;
   editingTask: Task | null;
   priorityColors: Record<string, string>;
   priorityIcons: Record<string, React.ReactNode>;
+  onEditBucket?: (bucket: BucketType) => void;
 }) {
+  const { data: buckets = [] } = useBuckets();
+
+  // when in edit mode, listen for cmd enter to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!editingTask) return;
+      if ((e.metaKey || e.ctrlKey || e.shiftKey) && e.key === "Enter") {
+        handleUpdateTask(editingTask?.id, {
+          title: editingTask?.title,
+          description: editingTask?.description || undefined,
+          priority: editingTask?.priority,
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingTask, handleUpdateTask]);
+
   return (
     <div
       key={bucket.id}
@@ -35,23 +65,42 @@ export function Bucket({
     >
       {/* Bucket Header */}
       <div
-        className="text-white p-4 flex items-center justify-between"
-        style={{ backgroundColor: bucket.color }}
+        className="p-4 flex items-center justify-between"
+        style={{
+          backgroundColor: bucket.color,
+          color: getTextColor(bucket.color),
+        }}
       >
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
+          <h3 className="text-lg font-semibold flex items-center gap-2 font-heading">
             {bucket.name}
           </h3>
           <p className="text-sm opacity-90">
             {bucketTasks.length} tasks ({completedTasks} completed)
           </p>
         </div>
-        <button
-          onClick={() => setDeletingBucketId(bucket.id)}
-          className="text-white hover:text-red-300 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {bucket.name.toLowerCase() !== "inbox" && onEditBucket && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEditBucket(bucket)}
+              className="transition-colors hover:opacity-70"
+              style={{
+                color: getTextColor(bucket.color),
+              }}
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setDeletingBucketId(bucket.id)}
+              className="transition-colors hover:opacity-70"
+              style={{
+                color: getTextColor(bucket.color),
+              }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tasks List */}
@@ -98,25 +147,49 @@ export function Bucket({
                       className="w-full p-2 bg-gray-600 border border-gray-500 rounded text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       rows={2}
                     />
-                    <select
-                      value={editingTask.priority}
-                      onChange={(e) =>
-                        setEditingTask({
-                          ...editingTask,
-                          priority: e.target.value as
-                            | "low"
-                            | "medium"
-                            | "high"
-                            | "urgent",
-                        })
-                      }
-                      className="p-2 bg-gray-600 border border-gray-500 rounded text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="low">Low Priority</option>
-                      <option value="medium">Medium Priority</option>
-                      <option value="high">High Priority</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
+                    <div className="w-full flex items-center justify-between gap-2">
+                      <select
+                        value={
+                          buckets.find((b) => b.id === editingTask.bucketId)
+                            ?.name
+                        }
+                        onChange={(e) => {
+                          const bucket = buckets.find(
+                            (b) => b.name === e.target.value
+                          );
+                          setEditingTask({
+                            ...editingTask,
+                            bucketId: bucket?.id ?? editingTask.bucketId,
+                          });
+                        }}
+                        className="p-2 bg-gray-600 border border-gray-500 rounded text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {buckets.map((b) => (
+                          <option key={b.id} value={b.name}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={editingTask.priority}
+                        onChange={(e) =>
+                          setEditingTask({
+                            ...editingTask,
+                            priority: e.target.value as
+                              | "low"
+                              | "medium"
+                              | "high"
+                              | "urgent",
+                          })
+                        }
+                        className="p-2 bg-gray-600 border border-gray-500 rounded text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() =>
@@ -143,26 +216,47 @@ export function Bucket({
                 ) : (
                   // View Mode
                   <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => handleToggleTask(task.id)}
-                      className="mt-1 flex-shrink-0"
-                    >
-                      {task.completed ? (
-                        <Check className="w-5 h-5 text-green-400" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-gray-400 hover:text-gray-300" />
-                      )}
-                    </button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <button
+                            onClick={() => handleToggleTask(task.id)}
+                            className="mt-1 flex-shrink-0"
+                          >
+                            {task.completed ? (
+                              <Check className="w-5 h-5 text-green-400" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="px-3 py-2 rounded-xl bg-gray-800 text-gray-100">
+                          {task.completed
+                            ? "Mark as incomplete"
+                            : "Mark as complete"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span>
-                          {
-                            priorityIcons[
-                              task.priority as keyof typeof priorityIcons
-                            ]
-                          }
-                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="text-gray-100">
+                                {
+                                  priorityIcons[
+                                    task.priority as keyof typeof priorityIcons
+                                  ]
+                                }
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="px-3 py-2 rounded-xl bg-gray-800 text-gray-100">
+                              {task.priority.charAt(0).toUpperCase() +
+                                task.priority.slice(1)}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <h4
                           className={`font-medium text-gray-100 ${
                             task.completed ? "line-through" : ""
@@ -186,7 +280,7 @@ export function Bucket({
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDeleteTask(task.id)}
+                          onClick={() => handleDeleteTask(task)}
                           className="text-red-400 hover:text-red-300 flex items-center gap-1 text-xs"
                         >
                           <Trash2 className="w-3 h-3" />
