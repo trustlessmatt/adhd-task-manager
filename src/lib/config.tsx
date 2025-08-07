@@ -1,10 +1,10 @@
 import { Snail, Fish, AlertCircle, Zap } from "lucide-react";
 
 export const priorityIcons = {
-  low: <Snail className="w-4 h-4 text-gray-400" />,
-  medium: <Fish className="w-4 h-4 text-yellow-500" />,
-  high: <AlertCircle className="w-4 h-4 text-orange-500" />,
-  urgent: <Zap className="w-4 h-4 text-red-500" />,
+  low: <Snail className="w-4 h-4 text-green-200 shrink-0" />,
+  medium: <Fish className="w-4 h-4 text-yellow-500 shrink-0" />,
+  high: <AlertCircle className="w-4 h-4 text-orange-500 shrink-0" />,
+  urgent: <Zap className="w-4 h-4 text-red-500 shrink-0" />,
 };
 
 export const priorityColors = {
