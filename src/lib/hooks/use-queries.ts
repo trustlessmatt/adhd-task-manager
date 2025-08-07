@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { Bucket, NewBucket, NewTask, Task } from '../db/schema';
 
 // API functions
@@ -136,8 +137,13 @@ export function useCreateBucket() {
   
   return useMutation({
     mutationFn: api.createBucket,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.all });
+      toast.success('Bucket created successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to create bucket. Please try again.');
+      console.error('Create bucket error:', error);
     },
   });
 }
@@ -150,6 +156,11 @@ export function useUpdateBucket() {
     onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.byId(id) });
+      toast.success('Bucket updated successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update bucket. Please try again.');
+      console.error('Update bucket error:', error);
     },
   });
 }
@@ -164,6 +175,11 @@ export function useDeleteBucket() {
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.byId(deletedId) });
       // Also invalidate tasks since they might be affected
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      toast.success('Bucket deleted successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete bucket. Please try again.');
+      console.error('Delete bucket error:', error);
     },
   });
 }
@@ -200,6 +216,11 @@ export function useCreateTask() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byBucket(data.bucketId) });
+      toast.success('Task created successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to create task. Please try again.');
+      console.error('Create task error:', error);
     },
   });
 }
@@ -215,6 +236,11 @@ export function useUpdateTask() {
       if (data) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byBucket(data.bucketId) });
       }
+      toast.success('Task updated successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update task. Please try again.');
+      console.error('Update task error:', error);
     },
   });
 }
@@ -227,6 +253,11 @@ export function useDeleteTask() {
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(deletedId) });
+      toast.success('Task deleted successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete task. Please try again.');
+      console.error('Delete task error:', error);
     },
   });
 }
@@ -242,6 +273,12 @@ export function useToggleTaskCompletion() {
       if (data) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byBucket(data.bucketId) });
       }
+      const status = data?.completed ? 'completed' : 'uncompleted';
+      toast.success(`Task marked as ${status}!`);
+    },
+    onError: (error) => {
+      toast.error('Failed to update task status. Please try again.');
+      console.error('Toggle task error:', error);
     },
   });
 } 

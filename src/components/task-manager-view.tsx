@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,8 +27,8 @@ import { DeleteButtonDialog } from "./delete-button-dialog";
 import { DeleteTaskDialog } from "./delete-task-dialog";
 import { EditBucketDialog } from "./edit-bucket-dialog";
 import { Bucket } from "./bucket";
-import type { Task, Bucket as BucketType } from "@/lib/db/schema";
 import { AddNewBucket } from "./add-new-bucket";
+import type { Task, Bucket as BucketType } from "@/lib/db/schema";
 
 export function TaskManagerView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -57,7 +57,7 @@ export function TaskManagerView() {
       title: "",
       description: "",
       priority: "medium",
-      bucketId: 0,
+      bucketId: 3,
     },
   });
 
@@ -71,6 +71,7 @@ export function TaskManagerView() {
   });
 
   const onSubmitTask = async (data: TaskFormData) => {
+    console.log(data);
     try {
       await createTaskMutation.mutateAsync(data);
       taskForm.reset();
@@ -153,6 +154,21 @@ export function TaskManagerView() {
     return tasks.filter((task) => task.bucketId === bucketId);
   };
 
+  // listen for cmd enter to add task
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey || e.shiftKey) &&
+        e.key === "Enter" &&
+        editingTask
+      ) {
+        taskForm.handleSubmit(onSubmitTask)();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [taskForm, editingTask]);
+
   if (bucketsLoading || tasksLoading) {
     return (
       <div className="p-4 text-gray-100 flex justify-center items-center h-screen">
@@ -232,7 +248,7 @@ export function TaskManagerView() {
                 )}
               </div>
 
-              <div>
+              {/* <div>
                 <select
                   {...taskForm.register("bucketId", { valueAsNumber: true })}
                   className="p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100"
@@ -249,7 +265,7 @@ export function TaskManagerView() {
                     {taskForm.formState.errors.bucketId.message}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               <button
                 type="submit"

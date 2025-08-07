@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { Providers } from "./providers";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,7 +35,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${poppins.variable} font-sans antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="flex flex-col min-h-screen bg-gray-900 gap-6">
+            {children}
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
