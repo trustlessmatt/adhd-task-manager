@@ -137,7 +137,7 @@ export function useCreateBucket() {
   
   return useMutation({
     mutationFn: api.createBucket,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.all });
       toast.success('Bucket created successfully!');
     },
@@ -153,7 +153,7 @@ export function useUpdateBucket() {
   
   return useMutation({
     mutationFn: api.updateBucket,
-    onSuccess: (data, { id }) => {
+    onSuccess: ({ id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.buckets.byId(id) });
       toast.success('Bucket updated successfully!');
