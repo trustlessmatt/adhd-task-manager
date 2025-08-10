@@ -115,6 +115,7 @@ export function Bucket({
         ) : (
           <div className="space-y-3">
             {bucketTasks
+              .filter((task) => task.completed === false)
               // sort by priority in descending order (urgent, high, medium, low)
               .sort((a, b) => {
                 const priorityOrder = ["urgent", "high", "medium", "low"];
@@ -128,9 +129,7 @@ export function Bucket({
                   key={task.id}
                   className={`border-l-4 ${
                     priorityColors[task.priority as keyof typeof priorityColors]
-                  } bg-gray-700 p-3 rounded-r-lg ${
-                    task.completed ? "opacity-60" : ""
-                  }`}
+                  } bg-gray-700 p-3 rounded-r-lg`}
                 >
                   {editingTask?.id === task.id ? (
                     // Edit Mode
@@ -302,6 +301,84 @@ export function Bucket({
                       </div>
                     </div>
                   )}
+                </div>
+              ))}
+            {bucketTasks
+              .filter((task) => task.completed === true)
+              .map((task) => (
+                <div className="border-l-4 flex items-start gap-3 bg-gray-700 p-3 rounded-r-lg">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div
+                          onClick={() => handleToggleTask(task.id)}
+                          className="mt-1 flex-shrink-0 cursor-pointer"
+                        >
+                          {task.completed ? (
+                            <Check className="w-5 h-5 text-green-400 hover:text-green-600" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="px-3 py-2 rounded-xl bg-gray-800 text-gray-100">
+                        {task.completed
+                          ? "Mark as incomplete"
+                          : "Mark as complete"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <div className="min-w-0">
+                    <h4
+                      className={`font-medium text-gray-100 ${
+                        task.completed ? "line-through" : ""
+                      }`}
+                    >
+                      <span className="h-full mr-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="text-gray-100 h-full shrink-0">
+                                {
+                                  priorityIcons[
+                                    task.priority as keyof typeof priorityIcons
+                                  ]
+                                }
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="px-3 py-2 rounded-xl bg-gray-800 text-gray-100">
+                              {task.priority.charAt(0).toUpperCase() +
+                                task.priority.slice(1)}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                      {task.title}
+                    </h4>
+                    {task.description && (
+                      <p className="text-sm text-gray-300 mb-2">
+                        {task.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      {/* <button
+                        onClick={() => setEditingTask(task)}
+                        className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-xs"
+                      >
+                        <Edit className="w-3 h-3" />
+                        Edit
+                      </button> */}
+                      <button
+                        onClick={() => handleDeleteTask(task)}
+                        className="text-red-400 hover:text-red-300 flex items-center gap-1 text-xs"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
           </div>
