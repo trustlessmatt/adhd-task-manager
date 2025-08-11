@@ -1,3 +1,4 @@
+import React from "react";
 import { Snail, Fish, AlertCircle, Zap } from "lucide-react";
 
 export const priorityIcons = {
