@@ -230,17 +230,47 @@ export function useUpdateTask() {
   
   return useMutation({
     mutationFn: api.updateTask,
-    onSuccess: (data, { id }) => {
+    onMutate: async ({ id, updates }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.all });
+      
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData(queryKeys.tasks.all);
+      
+      // Optimistically update to the new value
+      if (previousTasks) {
+        queryClient.setQueryData(queryKeys.tasks.all, (old: Task[] | undefined) => {
+          if (!old) return old;
+          return old.map(task => 
+            task.id === id ? { ...task, ...updates } : task
+          );
+        });
+      }
+      
+      // Return a context object with the snapshotted value
+      return { previousTasks };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTasks) {
+        queryClient.setQueryData(queryKeys.tasks.all, context.previousTasks);
+      }
+      toast.error('Failed to update task. Please try again.');
+      console.error('Update task error:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(id) });
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byBucket(data.bucketId) });
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate specific queries after successful update
+      if (variables) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(variables.id) });
+        if (data) {
+          queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byBucket(data.bucketId) });
+        }
       }
       toast.success('Task updated successfully!');
-    },
-    onError: (error) => {
-      toast.error('Failed to update task. Please try again.');
-      console.error('Update task error:', error);
     },
   });
 }
