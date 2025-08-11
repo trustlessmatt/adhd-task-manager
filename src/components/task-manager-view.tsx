@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useBuckets,
@@ -23,6 +22,7 @@ import {
 } from "@/lib/schemas";
 import { Loader2, Plus } from "lucide-react";
 import { priorityColors, priorityIcons } from "@/lib/config";
+import { Hero } from "./hero";
 import { DeleteButtonDialog } from "./delete-button-dialog";
 import { DeleteTaskDialog } from "./delete-task-dialog";
 import { EditBucketDialog } from "./edit-bucket-dialog";
@@ -196,18 +196,7 @@ export function TaskManagerView() {
     <DragAndDropProvider onTaskDrop={handleTaskDrop}>
       <div className="min-h-screen bg-gray-900 p-4">
         <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
-          <div className="flex items-center gap-1 mt-8 mb-2">
-            <Image
-              src="/images/icon.png"
-              alt="ADHD Task Manager"
-              width={56}
-              height={56}
-            />
-            <h1 className="text-3xl font-bold text-gray-100 text-center font-heading">
-              ADHD Task Manager
-            </h1>
-          </div>
-          <p className="text-gray-100 mb-8 text-center">Unf*ck your brain.</p>
+          <Hero />
 
           {/* Quick Add Task Section */}
           <div className="w-full max-w-5xl bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border border-gray-700">

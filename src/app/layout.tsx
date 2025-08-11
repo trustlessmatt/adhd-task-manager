@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
-import { Providers } from "./providers";
+import { ClientProviders } from "./providers";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
+import { SignedOut as SignedOutUI } from "@/components/signed-out";
 import { Footer } from "@/components/footer";
 import "./globals.css";
 
@@ -31,17 +40,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${poppins.variable} font-sans antialiased`}
-      >
-        <Providers>
-          <div className="flex flex-col min-h-screen bg-gray-900 gap-6">
-            {children}
-            <Footer />
-          </div>
-        </Providers>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${inter.variable} ${poppins.variable} font-sans antialiased`}
+        >
+          <ClientProviders>
+            <div className="flex flex-col min-h-screen bg-gray-900 gap-6">
+              <SignedOut>
+                <SignedOutUI />
+              </SignedOut>
+              <SignedIn>
+                <nav className="flex justify-end items-center p-4">
+                  <UserButton />
+                </nav>
+                {children}
+                <Footer />
+              </SignedIn>
+            </div>
+          </ClientProviders>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
