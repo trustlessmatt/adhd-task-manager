@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { ClientProviders } from "./providers";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { SignedOut as SignedOutUI } from "@/components/signed-out";
 import { Footer } from "@/components/footer";
 import "./globals.css";
