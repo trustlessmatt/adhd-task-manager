@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -74,15 +74,18 @@ export function TaskManagerView() {
     },
   });
 
-  const onSubmitTask = async (data: TaskFormData) => {
-    console.log(data);
-    try {
-      await createTaskMutation.mutateAsync(data);
-      taskForm.reset();
-    } catch (error) {
-      console.error("Failed to create task:", error);
-    }
-  };
+  const onSubmitTask = useCallback(
+    async (data: TaskFormData) => {
+      console.log(data);
+      try {
+        await createTaskMutation.mutateAsync(data);
+        taskForm.reset();
+      } catch (error) {
+        console.error("Failed to create task:", error);
+      }
+    },
+    [createTaskMutation, taskForm]
+  );
 
   const onSubmitBucket = async (data: BucketFormData) => {
     try {
@@ -185,7 +188,7 @@ export function TaskManagerView() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [taskForm, editingTask]);
+  }, [taskForm, editingTask, onSubmitTask]);
 
   if (bucketsLoading || tasksLoading) {
     return (
