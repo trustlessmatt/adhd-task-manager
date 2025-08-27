@@ -30,6 +30,8 @@ import { DroppableBucket } from "./droppable-bucket";
 import { AddNewBucket } from "./add-new-bucket";
 import { DragAndDropProvider } from "./drag-and-drop-provider";
 import type { Task, Bucket as BucketType } from "@/lib/db/schema";
+import { Switch } from "./ui/switch";
+import { useTaskViewStore } from "@/stores/task-view-store";
 
 export function TaskManagerView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -38,6 +40,7 @@ export function TaskManagerView() {
   const [editingBucket, setEditingBucket] = useState<BucketType | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
+  const { view, setView } = useTaskViewStore();
   // Query hooks
   const { data: buckets = [], isLoading: bucketsLoading } = useBuckets();
   const { data: tasks = [], isLoading: tasksLoading } = useTasks();
@@ -285,80 +288,94 @@ export function TaskManagerView() {
           </div>
 
           {/* Buckets Grid */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {buckets
-              .filter((bucket) => bucket.name.toLowerCase() === "inbox")
-              .map((bucket) => {
-                const bucketTasks = getTasksByBucket(bucket.id);
-                const completedTasks = bucketTasks.filter(
-                  (task) => task.completed
-                ).length;
+          <div className="w-full flex flex-col gap-4">
+            {/* view toggle */}
+            <div className="w-full flex justify-end items-center gap-2 text-white text-sm">
+              <p>Active</p>
+              <Switch
+                checked={view === "active"}
+                onCheckedChange={(checked) =>
+                  setView(checked ? "active" : "all")
+                }
+                className="border-2 border-gray-600"
+              />
+              <p>All</p>
+            </div>
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {buckets
+                .filter((bucket) => bucket.name.toLowerCase() === "inbox")
+                .map((bucket) => {
+                  const bucketTasks = getTasksByBucket(bucket.id);
+                  const completedTasks = bucketTasks.filter(
+                    (task) => task.completed
+                  ).length;
 
-                return (
-                  <DroppableBucket
-                    key={bucket.id}
-                    bucket={bucket}
-                    bucketTasks={bucketTasks}
-                    completedTasks={completedTasks}
-                    setDeletingBucketId={setDeletingBucketId}
-                    handleToggleTask={handleToggleTask}
-                    handleDeleteTask={handleDeleteTask}
-                    handleUpdateTask={handleUpdateTask}
-                    setEditingTask={setEditingTask}
-                    editingTask={editingTask}
-                    priorityColors={priorityColors}
-                    priorityIcons={priorityIcons}
-                    onEditBucket={handleEditBucket}
+                  return (
+                    <DroppableBucket
+                      key={bucket.id}
+                      bucket={bucket}
+                      bucketTasks={bucketTasks}
+                      completedTasks={completedTasks}
+                      setDeletingBucketId={setDeletingBucketId}
+                      handleToggleTask={handleToggleTask}
+                      handleDeleteTask={handleDeleteTask}
+                      handleUpdateTask={handleUpdateTask}
+                      setEditingTask={setEditingTask}
+                      editingTask={editingTask}
+                      priorityColors={priorityColors}
+                      priorityIcons={priorityIcons}
+                      onEditBucket={handleEditBucket}
+                    />
+                  );
+                })}
+
+              {/* now everything else */}
+              {buckets
+                .filter((bucket) => bucket.name.toLowerCase() !== "inbox")
+                .map((bucket) => {
+                  const bucketTasks = getTasksByBucket(bucket.id);
+                  const completedTasks = bucketTasks.filter(
+                    (task) => task.completed
+                  ).length;
+
+                  return (
+                    <DroppableBucket
+                      key={bucket.id}
+                      bucket={bucket}
+                      bucketTasks={bucketTasks}
+                      completedTasks={completedTasks}
+                      setDeletingBucketId={setDeletingBucketId}
+                      handleToggleTask={handleToggleTask}
+                      handleDeleteTask={handleDeleteTask}
+                      handleUpdateTask={handleUpdateTask}
+                      setEditingTask={setEditingTask}
+                      editingTask={editingTask}
+                      priorityColors={priorityColors}
+                      priorityIcons={priorityIcons}
+                      onEditBucket={handleEditBucket}
+                    />
+                  );
+                })}
+
+              {/* Add New Bucket */}
+              <div className="min-h-[250px] bg-gray-800 rounded-lg shadow-lg border-2 border-dashed border-gray-600 hover:border-gray-500 transition-colors">
+                {showAddBucket ? (
+                  <AddNewBucket
+                    setShowAddBucket={setShowAddBucket}
+                    bucketForm={bucketForm}
+                    onSubmitBucket={onSubmitBucket}
+                    createBucketMutation={createBucketMutation}
                   />
-                );
-              })}
-
-            {/* now everything else */}
-            {buckets
-              .filter((bucket) => bucket.name.toLowerCase() !== "inbox")
-              .map((bucket) => {
-                const bucketTasks = getTasksByBucket(bucket.id);
-                const completedTasks = bucketTasks.filter(
-                  (task) => task.completed
-                ).length;
-
-                return (
-                  <DroppableBucket
-                    key={bucket.id}
-                    bucket={bucket}
-                    bucketTasks={bucketTasks}
-                    completedTasks={completedTasks}
-                    setDeletingBucketId={setDeletingBucketId}
-                    handleToggleTask={handleToggleTask}
-                    handleDeleteTask={handleDeleteTask}
-                    handleUpdateTask={handleUpdateTask}
-                    setEditingTask={setEditingTask}
-                    editingTask={editingTask}
-                    priorityColors={priorityColors}
-                    priorityIcons={priorityIcons}
-                    onEditBucket={handleEditBucket}
-                  />
-                );
-              })}
-
-            {/* Add New Bucket */}
-            <div className="min-h-[250px] bg-gray-800 rounded-lg shadow-lg border-2 border-dashed border-gray-600 hover:border-gray-500 transition-colors">
-              {showAddBucket ? (
-                <AddNewBucket
-                  setShowAddBucket={setShowAddBucket}
-                  bucketForm={bucketForm}
-                  onSubmitBucket={onSubmitBucket}
-                  createBucketMutation={createBucketMutation}
-                />
-              ) : (
-                <button
-                  onClick={() => setShowAddBucket(true)}
-                  className="w-full h-full min-h-[200px] flex flex-col items-center justify-center text-gray-400 hover:text-gray-300 transition-colors"
-                >
-                  <Plus className="w-12 h-12 mb-2" />
-                  <span className="text-lg font-medium">Add New Bucket</span>
-                </button>
-              )}
+                ) : (
+                  <button
+                    onClick={() => setShowAddBucket(true)}
+                    className="w-full h-full min-h-[200px] flex flex-col items-center justify-center text-gray-400 hover:text-gray-300 transition-colors"
+                  >
+                    <Plus className="w-12 h-12 mb-2" />
+                    <span className="text-lg font-medium">Add New Bucket</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

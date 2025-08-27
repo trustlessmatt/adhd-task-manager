@@ -5,6 +5,7 @@ import { Bucket as BucketType, Task } from "@/lib/db/schema";
 import { TaskFormData } from "@/lib/schemas";
 import { Bucket } from "./bucket";
 import { DraggableTask } from "./draggable-task";
+import { useTaskViewStore } from "@/stores/task-view-store";
 
 interface DroppableBucketProps {
   bucket: BucketType;
@@ -42,6 +43,12 @@ export function DroppableBucket({
       type: "bucket",
     },
   });
+  const { view } = useTaskViewStore();
+
+  const filteredTasks =
+    view === "active"
+      ? bucketTasks.filter((task) => !task.completed)
+      : bucketTasks;
 
   return (
     <div
@@ -52,7 +59,7 @@ export function DroppableBucket({
     >
       <Bucket
         bucket={bucket}
-        bucketTasks={bucketTasks}
+        bucketTasks={filteredTasks}
         completedTasks={completedTasks}
         setDeletingBucketId={setDeletingBucketId}
         handleToggleTask={handleToggleTask}
