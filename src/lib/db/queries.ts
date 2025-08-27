@@ -27,8 +27,17 @@ export async function updateBucket(id: number, updates: Partial<NewBucket>): Pro
 }
 
 export async function deleteBucket(id: number): Promise<boolean> {
-  const result = await db.delete(buckets).where(eq(buckets.id, id)).returning();
-  return result.length > 0;
+  try {
+    // First delete all tasks in this bucket
+    await db.delete(tasks).where(eq(tasks.bucketId, id));
+    
+    // Then delete the bucket
+    const result = await db.delete(buckets).where(eq(buckets.id, id)).returning();
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error deleting bucket:', error);
+    throw error;
+  }
 }
 
 // Task queries

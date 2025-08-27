@@ -24,7 +24,7 @@ export function DeleteButtonDialog({
         <p className="text-gray-300 mb-6">
           Are you sure you want to delete the &quot;
           {buckets.find((b) => b.id === deletingBucketId)?.name}&quot; bucket?
-          All tasks in this bucket will be moved to your Inbox.
+          <strong className="text-red-400">Warning:</strong> This will permanently delete all tasks in this bucket.
         </p>
         <div className="flex gap-3 justify-end">
           <button
