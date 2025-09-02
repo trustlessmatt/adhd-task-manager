@@ -3,7 +3,7 @@ import Image from "next/image";
 export function Hero() {
   return (
     <>
-      <div className="flex items-center gap-1 mt-8 mb-2">
+      <div className="flex items-center gap-1 mt-3 mb-2">
         <Image
           src="/images/icon.png"
           alt="ADHD Task Manager"

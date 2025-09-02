@@ -100,7 +100,7 @@ export default function RootLayout({
         >
           <PWAProvider>
             <ClientProviders>
-              <div className="flex flex-col min-h-screen bg-gray-900 gap-6">
+              <div className="flex flex-col min-h-screen bg-[#1c1c1c] gap-6">
                 <SignedOut>
                   <SignedOutUI />
                 </SignedOut>

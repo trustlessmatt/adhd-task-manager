@@ -12,11 +12,8 @@ body {
   }
 }
 
-
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
     --card-foreground: 224 71.4% 4.1%;
@@ -48,7 +45,6 @@ body {
     --color-5: 90 100% 63%;
   }
   .dark {
-    --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
     --card: 224 71.4% 4.1%;
     --card-foreground: 210 20% 98%;
@@ -80,13 +76,14 @@ body {
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
   }
+  html {
+    @apply bg-[#1c1c1c];
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#1c1c1c] text-foreground;
   }
 }

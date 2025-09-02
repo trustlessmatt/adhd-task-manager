@@ -211,7 +211,7 @@ export function TaskManagerView() {
 
   return (
     <DragAndDropProvider onTaskDrop={handleTaskDrop}>
-      <div className="min-h-screen bg-gray-900 p-4">
+      <div className="min-h-screen p-4">
         <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
           <Hero />
 
