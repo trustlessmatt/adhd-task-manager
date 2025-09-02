@@ -15,6 +15,13 @@
       "when": 1754529818085,
       "tag": "0001_greedy_phantom_reporter",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1756823290399,
+      "tag": "0002_jittery_sphinx",
+      "breakpoints": true
     }
   ]
 }

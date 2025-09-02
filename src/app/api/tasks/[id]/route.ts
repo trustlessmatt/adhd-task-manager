@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { getTaskById, updateTask, deleteTask, toggleTaskCompletion } from '@/lib/db/queries';
 
 export async function GET(
@@ -6,8 +7,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const id = parseInt(params.id);
-    const task = await getTaskById(id);
+    const task = await getTaskById(id, userId);
     
     if (!task) {
       return NextResponse.json(
@@ -31,9 +41,18 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const id = parseInt(params.id);
     const body = await request.json();
-    const task = await updateTask(id, body);
+    const task = await updateTask(id, userId, body);
     
     if (!task) {
       return NextResponse.json(
@@ -57,8 +76,17 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const id = parseInt(params.id);
-    const success = await deleteTask(id);
+    const success = await deleteTask(id, userId);
     
     if (!success) {
       return NextResponse.json(
@@ -82,11 +110,20 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const id = parseInt(params.id);
     const { action } = await request.json();
     
     if (action === 'toggle') {
-      const task = await toggleTaskCompletion(id);
+      const task = await toggleTaskCompletion(id, userId);
       
       if (!task) {
         return NextResponse.json(

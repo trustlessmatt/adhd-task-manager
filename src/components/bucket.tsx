@@ -4,6 +4,7 @@ import { Bucket as BucketType, Task } from "@/lib/db/schema";
 import { TaskFormData } from "@/lib/schemas";
 import { Trash2, Check, Circle, Edit } from "lucide-react";
 import { getTextColor } from "@/lib/utils";
+import { isInboxBucket } from "@/lib/utils/inbox-bucket";
 import {
   Tooltip,
   TooltipContent,
@@ -81,7 +82,7 @@ export function Bucket({
             {bucketTasks.length} tasks ({completedTasks} completed)
           </p>
         </div>
-        {bucket.name.toLowerCase() !== "inbox" && onEditBucket && (
+        {!isInboxBucket(bucket.name) && onEditBucket && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEditBucket(bucket)}
@@ -107,10 +108,9 @@ export function Bucket({
 
       {/* Tasks List */}
       <div className="p-4 h-72 overflow-y-auto">
-        {bucketTasks.length === 0 && bucket.name.toLowerCase() !== "inbox" ? (
+        {bucketTasks.length === 0 && !isInboxBucket(bucket.name) ? (
           <p className="text-gray-400 text-center py-8">Wow, such empty.</p>
-        ) : bucketTasks.length === 0 &&
-          bucket.name.toLowerCase() === "inbox" ? (
+        ) : bucketTasks.length === 0 && isInboxBucket(bucket.name) ? (
           <p className="text-gray-400 text-center py-8">
             Empty inbox! Woohoo! 🎉
           </p>

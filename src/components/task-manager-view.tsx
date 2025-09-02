@@ -32,6 +32,7 @@ import { DragAndDropProvider } from "./drag-and-drop-provider";
 import type { Task, Bucket as BucketType } from "@/lib/db/schema";
 import { Switch } from "./ui/switch";
 import { useTaskViewStore } from "@/stores/task-view-store";
+import { isInboxBucket } from "@/lib/utils/inbox-bucket";
 
 export function TaskManagerView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -61,7 +62,7 @@ export function TaskManagerView() {
       title: "",
       description: "",
       priority: "medium",
-      bucketId: 3,
+      bucketId: 0, // Will be set dynamically to Inbox bucket ID
     },
   });
 
@@ -174,6 +175,16 @@ export function TaskManagerView() {
   const getTasksByBucket = (bucketId: number) => {
     return tasks.filter((task) => task.bucketId === bucketId);
   };
+
+  // Set default bucket ID to Inbox when buckets are loaded
+  useEffect(() => {
+    if (buckets.length > 0) {
+      const inboxBucket = buckets.find((bucket) => isInboxBucket(bucket.name));
+      if (inboxBucket) {
+        taskForm.setValue("bucketId", inboxBucket.id);
+      }
+    }
+  }, [buckets, taskForm]);
 
   // listen for cmd enter to add task
   useEffect(() => {
@@ -306,7 +317,7 @@ export function TaskManagerView() {
             </div>
             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {buckets
-                .filter((bucket) => bucket.name.toLowerCase() === "inbox")
+                .filter((bucket) => isInboxBucket(bucket.name))
                 .map((bucket) => {
                   const bucketTasks = getTasksByBucket(bucket.id);
                   const completedTasks = bucketTasks.filter(
@@ -334,7 +345,7 @@ export function TaskManagerView() {
 
               {/* now everything else */}
               {buckets
-                .filter((bucket) => bucket.name.toLowerCase() !== "inbox")
+                .filter((bucket) => !isInboxBucket(bucket.name))
                 .map((bucket) => {
                   const bucketTasks = getTasksByBucket(bucket.id);
                   const completedTasks = bucketTasks.filter(
@@ -374,8 +385,18 @@ export function TaskManagerView() {
                     onClick={() => setShowAddBucket(true)}
                     className="w-full h-full min-h-[200px] flex flex-col items-center justify-center text-gray-400 hover:text-gray-300 transition-colors"
                   >
-                    <Plus className="w-12 h-12 mb-2" />
-                    <span className="text-lg font-medium">Add New Bucket</span>
+                    <Plus className="w-12 h-12 mb-2 text-gray-200" />
+                    <span className="text-lg font-medium text-gray-200">
+                      {buckets.length === 1
+                        ? "Add Your First Bucket"
+                        : "Add New Bucket"}
+                    </span>
+                    {buckets.length === 1 && (
+                      <span className="text-sm font-medium">
+                        Something simple, like &quot;Home&quot; or
+                        &quot;Work&quot;
+                      </span>
+                    )}
                   </button>
                 )}
               </div>

@@ -1,13 +1,17 @@
-import { pgTable, serial, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, boolean, integer, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const buckets = pgTable('buckets', {
   id: serial('id').primaryKey(),
-  name: text('name').notNull().unique(),
+  name: text('name').notNull(),
   color: text('color').notNull(),
+  userId: text('user_id').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => [
+  // Make bucket names unique per user
+  unique('unique_user_bucket_name').on(table.userId, table.name),
+]);
 
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
@@ -15,6 +19,7 @@ export const tasks = pgTable('tasks', {
   description: text('description'),
   priority: text('priority').notNull().default('low').$type<"low" | "medium" | "high" | "urgent">(),
   bucketId: integer('bucket_id').notNull().references(() => buckets.id),
+  userId: text('user_id').notNull(),
   completed: boolean('completed').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

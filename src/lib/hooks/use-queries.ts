@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { Bucket, NewBucket, NewTask, Task } from '../db/schema';
+import type { Bucket, Task } from '../db/schema';
+import type { BucketFormData, TaskFormData } from '../schemas';
 
 // API functions
 const api = {
@@ -17,7 +18,7 @@ const api = {
     return response.json() as Promise<Bucket>;
   },
   
-  createBucket: async (bucket: NewBucket) => {
+  createBucket: async (bucket: BucketFormData) => {
     const response = await fetch('/api/buckets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,7 +28,7 @@ const api = {
     return response.json() as Promise<Bucket>;
   },
   
-  updateBucket: async ({ id, updates }: { id: number; updates: Partial<NewBucket> }) => {
+  updateBucket: async ({ id, updates }: { id: number; updates: Partial<BucketFormData> }) => {
     const response = await fetch(`/api/buckets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -64,7 +65,7 @@ const api = {
     return response.json() as Promise<Task>;
   },
   
-  createTask: async (task: NewTask) => {
+  createTask: async (task: TaskFormData) => {
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,7 +75,7 @@ const api = {
     return response.json() as Promise<Task>;
   },
   
-  updateTask: async ({ id, updates }: { id: number; updates: Partial<NewTask> }) => {
+  updateTask: async ({ id, updates }: { id: number; updates: Partial<TaskFormData> }) => {
     const response = await fetch(`/api/tasks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
