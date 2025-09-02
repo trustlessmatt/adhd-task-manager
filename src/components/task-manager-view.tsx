@@ -291,7 +291,7 @@ export function TaskManagerView() {
 
                 <button
                   type="submit"
-                  disabled={createTaskMutation.isPending}
+                  // disabled={createTaskMutation.isPending}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
                   <Plus className="w-5 h-5" />
@@ -305,15 +305,15 @@ export function TaskManagerView() {
           <div className="w-full flex flex-col gap-4">
             {/* view toggle */}
             <div className="w-full flex justify-end items-center gap-2 text-white text-sm">
-              <p>Active</p>
+              <p>All</p>
               <Switch
-                checked={view === "active"}
+                checked={view == "active"}
                 onCheckedChange={(checked) =>
                   setView(checked ? "active" : "all")
                 }
                 className="border-2 border-gray-600"
               />
-              <p>All</p>
+              <p>Active</p>
             </div>
             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {buckets
