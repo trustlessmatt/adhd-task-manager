@@ -80,12 +80,21 @@ export function TaskManagerView() {
       console.log(data);
       try {
         await createTaskMutation.mutateAsync(data);
-        taskForm.reset();
+        // Reset form with proper default values including the inbox bucket ID
+        const inboxBucket = buckets.find((bucket) =>
+          isInboxBucket(bucket.name)
+        );
+        taskForm.reset({
+          title: "",
+          description: "",
+          priority: "medium",
+          bucketId: inboxBucket?.id || 0,
+        });
       } catch (error) {
         console.error("Failed to create task:", error);
       }
     },
-    [createTaskMutation, taskForm]
+    [createTaskMutation, taskForm, buckets]
   );
 
   const onSubmitBucket = async (data: BucketFormData) => {
@@ -270,28 +279,9 @@ export function TaskManagerView() {
                   )}
                 </div>
 
-                {/* <div>
-                  <select
-                    {...taskForm.register("bucketId", { valueAsNumber: true })}
-                    className="p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100"
-                  >
-                    <option value="">Select Bucket</option>
-                    {buckets.map((bucket) => (
-                      <option key={bucket.id} value={bucket.id}>
-                        {bucket.name}
-                      </option>
-                    ))}
-                  </select>
-                  {taskForm.formState.errors.bucketId && (
-                    <p className="text-red-400 text-sm mt-1">
-                      {taskForm.formState.errors.bucketId.message}
-                    </p>
-                  )}
-                </div> */}
-
                 <button
                   type="submit"
-                  // disabled={createTaskMutation.isPending}
+                  disabled={createTaskMutation.isPending}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
                   <Plus className="w-5 h-5" />
