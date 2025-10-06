@@ -13,6 +13,7 @@ import {
   useUpdateTask,
   useDeleteBucket,
   useUpdateBucket,
+  useReorderBuckets,
 } from "@/lib/hooks/use-queries";
 import {
   bucketSchema,
@@ -54,6 +55,7 @@ export function TaskManagerView() {
   const updateTaskMutation = useUpdateTask();
   const deleteBucketMutation = useDeleteBucket();
   const updateBucketMutation = useUpdateBucket();
+  const reorderBucketsMutation = useReorderBuckets();
 
   // Task form
   const taskForm = useForm<TaskFormData>({
@@ -181,6 +183,12 @@ export function TaskManagerView() {
     });
   };
 
+  const handleBucketReorder = (
+    bucketOrders: { id: number; order: number }[]
+  ) => {
+    reorderBucketsMutation.mutate(bucketOrders);
+  };
+
   const getTasksByBucket = (bucketId: number) => {
     return tasks.filter((task) => task.bucketId === bucketId);
   };
@@ -219,7 +227,11 @@ export function TaskManagerView() {
   }
 
   return (
-    <DragAndDropProvider onTaskDrop={handleTaskDrop}>
+    <DragAndDropProvider
+      buckets={buckets}
+      onTaskDrop={handleTaskDrop}
+      onBucketReorder={handleBucketReorder}
+    >
       <div className="min-h-screen p-4">
         <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
           <Hero />

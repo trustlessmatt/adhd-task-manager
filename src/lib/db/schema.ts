@@ -6,6 +6,7 @@ export const buckets = pgTable('buckets', {
   name: text('name').notNull(),
   color: text('color').notNull(),
   userId: text('user_id').notNull(),
+  order: integer('order').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [

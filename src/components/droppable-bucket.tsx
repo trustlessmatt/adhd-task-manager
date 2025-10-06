@@ -1,6 +1,6 @@
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Bucket as BucketType, Task } from "@/lib/db/schema";
 import { TaskFormData } from "@/lib/schemas";
 import { Bucket } from "./bucket";
@@ -43,6 +43,20 @@ export function DroppableBucket({
       type: "bucket",
     },
   });
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: `bucket-${bucket.id}`,
+    data: {
+      bucket,
+      type: "bucket",
+    },
+  });
+
   const { view } = useTaskViewStore();
 
   const filteredTasks =
@@ -52,10 +66,13 @@ export function DroppableBucket({
 
   return (
     <div
-      ref={setNodeRef}
-      className={`transition-all duration-200 ${
+      ref={(node) => {
+        setNodeRef(node);
+        setDragRef(node);
+      }}
+      className={`transition-all duration-200 group ${
         isOver ? "ring-2 ring-blue-400 ring-opacity-50 scale-105" : ""
-      }`}
+      } ${isDragging ? "opacity-50 scale-95" : ""}`}
     >
       <Bucket
         bucket={bucket}
@@ -70,6 +87,8 @@ export function DroppableBucket({
         priorityColors={priorityColors}
         priorityIcons={priorityIcons}
         onEditBucket={onEditBucket}
+        dragHandleProps={{ ...attributes, ...listeners }}
+        isDragging={isDragging}
         renderTask={(task) => (
           <DraggableTask
             key={task.id}

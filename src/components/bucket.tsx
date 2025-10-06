@@ -2,7 +2,7 @@
 
 import { Bucket as BucketType, Task } from "@/lib/db/schema";
 import { TaskFormData } from "@/lib/schemas";
-import { Trash2, Check, Circle, Edit } from "lucide-react";
+import { Trash2, Check, Circle, Edit, GripHorizontal } from "lucide-react";
 import { getTextColor } from "@/lib/utils";
 import { isInboxBucket } from "@/lib/utils/inbox-bucket";
 import {
@@ -28,6 +28,8 @@ export function Bucket({
   priorityIcons,
   onEditBucket,
   renderTask,
+  dragHandleProps,
+  isDragging,
 }: {
   bucket: BucketType;
   bucketTasks: Task[];
@@ -42,6 +44,8 @@ export function Bucket({
   priorityIcons: Record<string, React.ReactNode>;
   onEditBucket?: (bucket: BucketType) => void;
   renderTask?: (task: Task) => React.ReactNode;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+  isDragging?: boolean;
 }) {
   const { data: buckets = [] } = useBuckets();
 
@@ -64,7 +68,9 @@ export function Bucket({
   return (
     <div
       key={bucket.id}
-      className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700"
+      className={`bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700 group ${
+        isDragging ? "opacity-50 scale-95" : ""
+      }`}
     >
       {/* Bucket Header */}
       <div
@@ -74,13 +80,24 @@ export function Bucket({
           color: getTextColor(bucket.color),
         }}
       >
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2 font-heading">
-            {bucket.name}
-          </h3>
-          <p className="text-sm opacity-90">
-            {bucketTasks.length} tasks ({completedTasks} completed)
-          </p>
+        <div className="flex items-center gap-2">
+          {/* Drag Handle */}
+          {dragHandleProps && (
+            <div
+              {...dragHandleProps}
+              className="p-1 rounded cursor-grab active:cursor-grabbing hover:bg-black hover:bg-opacity-10 transition-colors opacity-0 group-hover:opacity-100"
+            >
+              <GripHorizontal className="w-4 h-4" />
+            </div>
+          )}
+          <div>
+            <h3 className="text-lg font-semibold flex items-center gap-2 font-heading">
+              {bucket.name}
+            </h3>
+            <p className="text-sm opacity-90">
+              {bucketTasks.length} tasks ({completedTasks} completed)
+            </p>
+          </div>
         </div>
         {!isInboxBucket(bucket.name) && onEditBucket && (
           <div className="flex items-center gap-2">

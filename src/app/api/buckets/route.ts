@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getAllBuckets, createBucket } from '@/lib/db/queries';
+import { getAllBuckets, createBucket, reorderBuckets } from '@/lib/db/queries';
 import { ensureInboxBucket } from '@/lib/utils/inbox-bucket';
 
 export async function GET() {
@@ -46,6 +46,38 @@ export async function POST(request: NextRequest) {
     console.error('Error creating bucket:', error);
     return NextResponse.json(
       { error: 'Failed to create bucket' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { bucketOrders } = body;
+    
+    if (!Array.isArray(bucketOrders)) {
+      return NextResponse.json(
+        { error: 'bucketOrders must be an array' },
+        { status: 400 }
+      );
+    }
+
+    const updatedBuckets = await reorderBuckets(bucketOrders, userId);
+    return NextResponse.json(updatedBuckets);
+  } catch (error) {
+    console.error('Error reordering buckets:', error);
+    return NextResponse.json(
+      { error: 'Failed to reorder buckets' },
       { status: 500 }
     );
   }

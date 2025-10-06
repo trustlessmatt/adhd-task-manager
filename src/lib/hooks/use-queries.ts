@@ -46,6 +46,16 @@ const api = {
     return response.json() as Promise<Bucket>;
   },
   
+  reorderBuckets: async (bucketOrders: { id: number; order: number }[]) => {
+    const response = await fetch('/api/buckets', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bucketOrders }),
+    });
+    if (!response.ok) throw new Error('Failed to reorder buckets');
+    return response.json() as Promise<Bucket[]>;
+  },
+  
   // Task APIs
   getTasks: async () => {
     const response = await fetch('/api/tasks');
@@ -181,6 +191,50 @@ export function useDeleteBucket() {
     onError: (error) => {
       toast.error('Failed to delete bucket. Please try again.');
       console.error('Delete bucket error:', error);
+    },
+  });
+}
+
+export function useReorderBuckets() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: api.reorderBuckets,
+    onMutate: async (bucketOrders) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.buckets.all });
+      
+      // Snapshot the previous value
+      const previousBuckets = queryClient.getQueryData(queryKeys.buckets.all);
+      
+      // Optimistically update to the new value
+      if (previousBuckets) {
+        queryClient.setQueryData(queryKeys.buckets.all, (old: Bucket[] | undefined) => {
+          if (!old) return old;
+          return old.map(bucket => {
+            const newOrder = bucketOrders.find(bo => bo.id === bucket.id);
+            return newOrder ? { ...bucket, order: newOrder.order } : bucket;
+          }).sort((a, b) => a.order - b.order);
+        });
+      }
+      
+      // Return a context object with the snapshotted value
+      return { previousBuckets };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousBuckets) {
+        queryClient.setQueryData(queryKeys.buckets.all, context.previousBuckets);
+      }
+      toast.error('Failed to reorder buckets. Please try again.');
+      console.error('Reorder buckets error:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: queryKeys.buckets.all });
+    },
+    onSuccess: () => {
+      toast.success('Buckets reordered successfully!');
     },
   });
 }
