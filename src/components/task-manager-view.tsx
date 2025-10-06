@@ -34,6 +34,7 @@ import type { Task, Bucket as BucketType } from "@/lib/db/schema";
 import { Switch } from "./ui/switch";
 import { useTaskViewStore } from "@/stores/task-view-store";
 import { isInboxBucket } from "@/lib/utils/inbox-bucket";
+import { cn } from "@/lib/utils";
 
 export function TaskManagerView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -313,7 +314,10 @@ export function TaskManagerView() {
                 onCheckedChange={(checked) =>
                   setView(checked ? "active" : "all")
                 }
-                className="border-2 border-gray-600"
+                className={cn(
+                  "border-2 border-gray-600",
+                  view === "active" && "!bg-blue-500"
+                )}
               />
               <p>Active</p>
             </div>

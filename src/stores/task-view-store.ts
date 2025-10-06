@@ -8,6 +8,6 @@ interface TaskViewStore {
 }
 
 export const useTaskViewStore = create<TaskViewStore>((set) => ({
-  view: 'all',
+  view: 'active',
   setView: (view) => set({ view }),
 }));
